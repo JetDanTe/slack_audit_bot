@@ -1,0 +1,4 @@
+
+
+class EnvironmentVarException(BaseException):
+    pass

@@ -5,7 +5,7 @@ from slack_sdk.errors import SlackApiError
 from custom_exceptions import EnvironmentVarException
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 import os
-
+import typing as tp
 
 class AuditBot:
 
@@ -85,12 +85,12 @@ class AuditBot:
         if not self.debug:
             try:
                 response = self.app.client.conversations_open(users=user_id)
-                # dm_channel_id = response["channel"]["id"]
-                #
-                # self.app.client.chat_postMessage(
-                #     channel=dm_channel_id,
-                #     text=message
-                # )
+                dm_channel_id = response["channel"]["id"]
+
+                self.app.client.chat_postMessage(
+                    channel=dm_channel_id,
+                    text=message
+                )
             except SlackApiError as e:
                 print(f"Error sending message: {e.response['error']}")
         else:
@@ -108,12 +108,12 @@ class AuditBot:
         if not self.audit_session:
             say("There is no active audit session. Please wait until an audit is started.")
         else:
-            existed_answer = self.database_manager.check_if_answer_exist(data)
-            if not existed_answer:
-                self.audit_session.add_response(data)
-                say(f"Thank you <@{body['user_id']}>! Your response '{body['text']}' has been recorded.")
-            else:
-                say("You already answered.")
+            # existed_answer = self.database_manager.check_if_answer_exist(data)
+            # if not existed_answer:
+            self.audit_session.add_response(data)
+            say(f"Thank you <@{body['user_id']}>! Your response '{body['text']}' has been recorded.")
+            #else:
+            #    say("You already answered.")
 
     def close_audit(self, ack, body, say):
         """ Close audit and return audit report .xlsx file """
@@ -123,7 +123,7 @@ class AuditBot:
             self.audit_session.close_session()
             audit_summary = self.audit_session.get_audit_summary()
             self.app.client.files_upload_v2(
-                channels=channel_id,
+                channel=channel_id,
                 initial_comment="Audit closed!\nHere's report file :smile:",
                 file=audit_summary,
             )
@@ -137,24 +137,58 @@ class AuditBot:
         self.database_manager.update_users(users)
         say("Users updated")
 
+    def _format_user_list(self, users: tp.Text) -> tp.List[tp.Dict]:
+        """
+        Format list of users from string to dict
+        :param users: Str
+        :return: List of dicts
+        """
+        users = users.split(' ')
+        formatted_users = [
+            {
+                'id': None,
+                'name': user.replace('@', ''),
+                'profile': {
+                    'real_name': None
+                }
+            }
+            for user in users
+        ]
+        return formatted_users
+
+    def _handle_list_of_users(self, body: tp.Dict, update_type: str) -> tp.Text:
+        """
+        Handle list of users for different update types (admin or ignore).
+
+        :param users: List of usernames to update
+        :param update_type: Type of update ('admin' or 'ignore')
+        :return: List of not found users
+        :raises ValueError: If invalid update_type provided
+        """
+        if update_type not in ['admin', 'ignore']:
+            raise ValueError("update_type must be either 'admin' or 'ignore'")
+
+        text = f'{update_type.title()} list updated'
+        users = self._format_user_list(body.get('text'))
+        not_found_users = self.database_manager.update_users(users,
+                                                             to_ignore=(update_type == 'ignore'),
+                                                             to_admin=(update_type == 'admin'),
+                                                             by_name=True)
+        if not_found_users:
+            text += f"\nCould not find the following users: {', '.join(user.get('name')for user in not_found_users)}"
+        return text
+
     def update_ignore(self, ack, body, say):
         """ Update list of users which audit can ignore """
         ack()
-        users_to_ignore = body.get('text')
-        users_to_ignore = users_to_ignore.split(' ')
-        result = self.database_manager.update_users(users_to_ignore, to_ignore=True, by_name=True)
-        text = "Ignore list updated"
-        if result:
-            text += f"\nCould not find the following users: {', '.join(result)}"
-        say(text)
+        result = self._handle_list_of_users(body, 'ignore')
+        say(result)
 
     def update_admin(self, ack, body, say):
         """ Set column is_admin to True in the database """
         ack()
-        users_to_ignore = body.get('text')
-        users_to_ignore = users_to_ignore.split(' ')
-        self.database_manager.update_users(users_to_ignore, to_admin=True, by_name=True)
-        say("Admin list updated")
+        result = self._handle_list_of_users(body, 'admin')
+        say(result)
 
     def show_users(self, ack, body, say):
         """ Universal command to show a list of users. Depends on which command is triggered."""
@@ -168,7 +202,11 @@ class AuditBot:
         if not self.audit_session and command_name == "/audit_unanswered":
             say("There is no active audit session")
         else:
-            users_to_show = self.database_manager.get_users(command_name, self.audit_session.table_name)
+
+            users_to_show = self.database_manager.get_users(
+                command_name,
+                None if not self.audit_session else self.audit_session.table_name
+            )
             if isinstance(users_to_show, str):
                 say(users_to_show)
             else:
