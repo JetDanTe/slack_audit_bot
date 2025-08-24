@@ -11,7 +11,7 @@ class DatabaseConfig:
     """
     Manage database configuration and connection setup.
     """
-    REQUIRED_VARS = ('PSTGRE_SERVER', 'PSTGRE_USER', 'PSTGRE_PASS', 'PSTGRE_DB')
+    REQUIRED_VARS = ('POSTGRES_HOST', 'POSTGRES_USER', 'POSTGRES_PASSWORD', 'POSTGRES_DB')
 
     @classmethod
     def validate_environment(cls) -> tp.Dict[str, str]:
@@ -24,6 +24,7 @@ class DatabaseConfig:
         config = {}
         for env_var in cls.REQUIRED_VARS:
             value = os.environ.get(env_var)
+            print(f"{env_var}: {value}")
             if not value:
                 raise EnvironmentVarException(f'Environment variable "{env_var}" is missing or empty')
             config[env_var] = value
@@ -38,10 +39,10 @@ class DatabaseConfig:
         :return: SQLAlchemy database connection URL
         """
         return (
-            f'postgresql://{config["PSTGRE_USER"]}:'
-            f'{config["PSTGRE_PASS"]}@'
-            f'{config["PSTGRE_SERVER"]}/'
-            f'{config["PSTGRE_DB"]}'
+            f'postgresql://{config["POSTGRES_USER"]}:'
+            f'{config["POSTGRES_PASSWORD"]}@'
+            f'{config["POSTGRES_HOST"]}/'
+            f'{config["POSTGRES_DB"]}'
         )
 
 

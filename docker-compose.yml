@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  bot:
+    build: .
+    container_name: slack-bot
+    depends_on:
+      - db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      SLACK_BOT_TOKEN: ${SLACK_BOT_TOKEN}
+      SLACK_APP_TOKEN: ${SLACK_APP_TOKEN}
+    volumes:
+      - ./bot:/app
+    restart: on-failure:3
+
+  db:
+    image: postgres:15
+    container_name: slack-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      slack_admin.id: ${SLACK_ADMIN_ID}
+      slack_admin.name: ${ADMIN_USER}
+    volumes:
+      - ./db/01-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:
