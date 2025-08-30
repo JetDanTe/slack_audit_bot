@@ -1,0 +1,40 @@
+name: slackbot_cicd
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  IMAGE_NAME: jetdante/slack-audit-bot
+
+
+jobs:
+  build-docker:
+    name: Build docker image
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Docker Hub Login
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build&Push docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Success message
+        run: |
+          echo "✅ Docker image built and pushed successfully!"
+          echo "🐳 Image: ${{ env.IMAGE_NAME }}:latest"
