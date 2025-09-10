@@ -46,4 +46,4 @@ jobs:
       - name: Success message
         run: |
           echo "✅ Docker image built and pushed successfully!"
-          echo "🐳 Image: ${{ steps.meta.outputs.tags }}""
+          echo "🐳 Image: ${{ env.VERSION }}""
