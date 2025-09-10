@@ -28,9 +28,8 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Extract version from Git tag
-        id: vars
         run: |
-          VERSION:${GITHUB_REF#refs/tags}
+          VERSION=${GITHUB_REF#refs/tags/}
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "Git tag version is $VERSION"
 
