@@ -1,0 +1,73 @@
+{
+    "audit_start": {
+      "command": "/audit_start",
+      "description": "Starts the audit",
+      "should_escape": false,
+      "usage_hint": "Admin only"
+    },
+    "users_update": {
+      "command": "/users_update",
+      "description": "Update users list",
+      "should_escape": false,
+      "usage_hint": "Admin only"
+    },
+    "ignore_show": {
+      "command": "/ignore_show",
+      "description": "Show users ignore list",
+      "should_escape": false,
+      "usage_hint": "Admin only"
+    },
+    "ignore_update": {
+      "command": "/ignore_update",
+      "description": "Update users ignore list",
+      "should_escape": false,
+      "usage_hint": "Admin only"
+    },
+    "audit_stop": {
+      "command": "/audit_stop",
+      "description": "Stop audit",
+      "should_escape": false,
+      "usage_hint": "Admin only"
+    },
+    "answer": {
+      "command": "/answer",
+      "description": "How users answer",
+      "should_escape": false,
+      "usage_hint": "/answer YOUR_ANSWER"
+    },
+    "audits_show": {
+      "command": "/audits_show",
+      "description": "Show all audit table names",
+      "should_escape": false,
+      "usage_hint": "Admin only"
+    },
+    "audit_get": {
+      "command": "/audit_get",
+      "description": "Get specific audit by name",
+      "should_escape": false,
+      "usage_hint": "Admin only"
+    },
+    "audit_unanswered": {
+      "command": "/audit_unanswered",
+      "description": "Show unanswered users",
+      "should_escape": false,
+      "usage_hint": "Admin only"
+    },
+    "user_help": {
+      "command": "/user_help",
+      "description": "Explain which command users can use",
+      "should_escape": false,
+      "usage_hint": "Do not use any quotation mark"
+    },
+    "admin_show": {
+      "command": "/admin_show",
+      "description": "Show admin users",
+      "should_escape": false
+    },
+    "admin_add": {
+      "command": "/admin_add",
+      "description": "Adds admin users",
+      "should_escape": false,
+      "usage_hint": "/admin_add @User_mention"
+    }
+}

@@ -14,7 +14,7 @@ services:
       SLACK_BOT_TOKEN: ${SLACK_BOT_TOKEN}
       SLACK_APP_TOKEN: ${SLACK_APP_TOKEN}
     volumes:
-      - ./bot:/app
+      - ./app:/app
     restart: on-failure:3
   db:
     image: postgres:15
