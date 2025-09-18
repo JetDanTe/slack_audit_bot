@@ -6,12 +6,16 @@ from custom_exceptions import EnvironmentVarException
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 import os
 import typing as tp
+from utils.logger.logging_config import setup_logging
+import logging
+
 
 class AuditBot:
 
     _token_vars = ('SLACK_BOT_TOKEN', 'SLACK_APP_TOKEN')
 
     def __init__(self, debug=False):
+        self.logger = logging.getLogger('slack_audit_bot.audit')
         self.database_manager = database_init()
         self.__check_tokens()
         self.debug = debug
@@ -55,9 +59,13 @@ class AuditBot:
 
     def admin_check(self, func):
         """ Decorator to check if the command is issued by an admin."""
+
         def wrapper(ack, body, say, *args, **kwargs):
             ack()
             user_id = body["user_id"]
+
+            self.logger.info(f"User: {body.get('user_name')} trigger command: {func.__name__}")
+
             if user_id not in self.admins:
                 say("You are not authorized to perform this action.")
                 return
@@ -199,6 +207,7 @@ class AuditBot:
             "/audit_unanswered": "Audit unanswered:",
         }
         command_name = body.get('command')
+        self.logger.info(f"User {body.get('user_name')} trigger {command_name}")
         if not self.audit_session and command_name == "/audit_unanswered":
             say("There is no active audit session")
         else:

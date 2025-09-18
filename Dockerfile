@@ -8,9 +8,13 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 COPY doc/requirements.txt .
-
 RUN pip install --no-cache-dir -r requirements.txt
 
+RUN mkdir -p logs
+
 COPY app/ .
+
+ENV LOG_LEVEL=INFO
+ENV PYTHONUNBUFFERED=1
 
 CMD ["python", "main.py"]
